@@ -20,10 +20,12 @@
 #include <stdio.h>
 #include <string.h>
 // Use POSIX I/O for compatibility with Linux/MacOS/Windows
-#include <unistd.h>
+// #include <unistd.h>
+// #include <io.h>
 #include <stdarg.h>
 
-#include <sys/fcntl.h>
+// #include <sys/fcntl.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 
 #include "gif_lib.h"

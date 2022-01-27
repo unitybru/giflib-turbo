@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.11)
 
 project("gif" VERSION 0.1.0)
 
-add_library(${PROJECT_NAME})
+add_library(${PROJECT_NAME} SHARED)
 
 target_sources(${PROJECT_NAME}
     PRIVATE
@@ -46,6 +46,7 @@ install(EXPORT "${PROJECT_NAME}Config"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/giflib
 )
 
-add_executable(test)
-target_sources(test PRIVATE test.c)
-target_link_libraries(test PRIVATE ${PROJECT_NAME})
+# Can't do this with a shared lib
+# add_executable(test)
+# target_sources(test PRIVATE test.c)
+# target_link_libraries(test PRIVATE ${PROJECT_NAME})
