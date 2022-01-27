@@ -23,9 +23,12 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     VERSION ${LIB_VERSION}
     SOVERSION ${LIB_VERSION_MAJOR})
 
+set_source_files_properties(gif_lib.c PROPERTIES LANGUAGE CXX )
+
 IF(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES
         RUNTIME_OUTPUT_NAME "${PROJECT_NAME}-${LIB_VERSION_MAJOR}")
+	set(CMAKE_CXX_FLAGS "/DWIN32 /D_WINDOWS")
 ENDIF(WIN32)
 
 configure_file(giflib.pc.in giflib.pc @ONLY)
