@@ -20,10 +20,19 @@
 #include <stdio.h>
 #include <string.h>
 // Use POSIX I/O for compatibility with Linux/MacOS/Windows
-#include <unistd.h>
+
+#ifdef _WINDOWS
+	#define EXPORT_API __declspec(dllexport)
+	#include <fcntl.h>
+	#include <io.h>
+#else
+	#define EXPORT_API
+	#include <unistd.h>
+	#include <sys/fcntl.h>
+#endif
+
 #include <stdarg.h>
 
-#include <sys/fcntl.h>
 #include <sys/stat.h>
 
 #include "gif_lib.h"
@@ -301,7 +310,7 @@ void GIFInterlace(uint8_t *pSrc, int iWidth, int iHeight)
     int iGifPass = 0;
     int i, y;
     uint8_t *d, *s;
-    uint8_t *pTemp = malloc(iWidth * iHeight);
+    uint8_t *pTemp = (uint8_t*)malloc(iWidth * iHeight);
     
     y = 0;
     for (i = 0; i < iHeight; i++)
@@ -721,7 +730,7 @@ int EGifPutExtensionLeader(GifFileType *gif, const int ExtCode)
         pImage = &gif->SavedImages[gif->ImageCount-1];
         if (pImage->ExtensionBlockCount == 0) {
             // allocate some extension block structures
-            pImage->ExtensionBlocks = calloc(1, MAX_EXTENSIONS * sizeof(ExtensionBlock));
+            pImage->ExtensionBlocks = (ExtensionBlock*)calloc(1, MAX_EXTENSIONS * sizeof(ExtensionBlock));
             if (pImage->ExtensionBlocks == NULL)
                 return E_GIF_ERR_NOT_ENOUGH_MEM;
             pImage->ExtensionBlockCount = 1;
@@ -730,7 +739,7 @@ int EGifPutExtensionLeader(GifFileType *gif, const int ExtCode)
     } else  { // put it in the main image
         if (gif->ExtensionBlockCount == 0) {
             // allocate some extension block structures
-            gif->ExtensionBlocks = calloc(1, MAX_EXTENSIONS * sizeof(ExtensionBlock));
+            gif->ExtensionBlocks = (ExtensionBlock*)calloc(1, MAX_EXTENSIONS * sizeof(ExtensionBlock));
             if (gif->ExtensionBlocks == NULL)
                 return E_GIF_ERR_NOT_ENOUGH_MEM;
             gif->ExtensionBlockCount = 1;
@@ -755,24 +764,24 @@ int EGifPutExtensionBlock(GifFileType *gif, const int ExtLen, const void *Extens
         pImage = &gif->SavedImages[gif->ImageCount-1];
         if (pImage->ExtensionBlockCount == 0) {
             // allocate some extension block structures
-            pImage->ExtensionBlocks = calloc(1, MAX_EXTENSIONS * sizeof(ExtensionBlock));
+            pImage->ExtensionBlocks = (ExtensionBlock*)calloc(1, MAX_EXTENSIONS * sizeof(ExtensionBlock));
             if (pImage->ExtensionBlocks == NULL)
                 return E_GIF_ERR_NOT_ENOUGH_MEM;
             pImage->ExtensionBlockCount = 1;
         }
         pImage->ExtensionBlocks[pImage->ExtensionBlockCount-1].ByteCount = ExtLen;
-        pImage->ExtensionBlocks[pImage->ExtensionBlockCount-1].Bytes = malloc(ExtLen);
+        pImage->ExtensionBlocks[pImage->ExtensionBlockCount-1].Bytes = (GifByteType*)malloc(ExtLen);
         memcpy(pImage->ExtensionBlocks[pImage->ExtensionBlockCount-1].Bytes, Extension, ExtLen);
     } else  { // put it in the main image
         if (gif->ExtensionBlockCount == 0) {
             // allocate some extension block structures
-            gif->ExtensionBlocks = calloc(1, MAX_EXTENSIONS * sizeof(ExtensionBlock));
+            gif->ExtensionBlocks = (ExtensionBlock*)calloc(1, MAX_EXTENSIONS * sizeof(ExtensionBlock));
             if (gif->ExtensionBlocks == NULL)
                 return E_GIF_ERR_NOT_ENOUGH_MEM;
             gif->ExtensionBlockCount = 1;
         }
         gif->ExtensionBlocks[gif->ExtensionBlockCount-1].ByteCount = ExtLen;
-        gif->ExtensionBlocks[gif->ExtensionBlockCount-1].Bytes = malloc(ExtLen);
+        gif->ExtensionBlocks[gif->ExtensionBlockCount-1].Bytes = (GifByteType*)malloc(ExtLen);
         memcpy(gif->ExtensionBlocks[gif->ExtensionBlockCount-1].Bytes, Extension, ExtLen);
     }
     return GIF_OK;}
@@ -820,7 +829,7 @@ int EGifPutScreenDesc(GifFileType *GifFile,
     // Mark this file as having a screen descriptor, and no pixel data yet
     // Allocate memory for the image data
     GifFile->ImageCount = 0;
-    GifFile->SavedImages = calloc(1, sizeof(SavedImage) * GIF_IMAGE_INCREMENT); // allocate N image structures
+    GifFile->SavedImages = (SavedImage*)calloc(1, sizeof(SavedImage) * GIF_IMAGE_INCREMENT); // allocate N image structures
     if (GifFile->SavedImages == NULL) {
         GifFile->Error = E_GIF_ERR_NOT_ENOUGH_MEM;
         return GIF_ERROR;
@@ -878,7 +887,7 @@ int EGifPutImageDesc(GifFileType *GifFile,
     GifFile->SavedImages[0].ImageDesc.Left = Left;
     GifFile->SavedImages[0].ImageDesc.Width = Width;
     GifFile->SavedImages[0].ImageDesc.Height = Height;
-    GifFile->SavedImages[0].RasterBits = malloc(Width * Height);
+    GifFile->SavedImages[0].RasterBits = (GifByteType*)malloc(Width * Height);
     if (GifFile->SavedImages[0].RasterBits == NULL) {
         GifFile->Error = E_GIF_ERR_NOT_ENOUGH_MEM;
         return GIF_ERROR;
@@ -937,7 +946,7 @@ int EGifPutLine(GifFileType *gif, GifPixelType *pLine,
     if (pPrivate->iPixelCount == 0) { // image finished!
         // Need to hack things a bit to not free the outer gif
         // structure here because the old API freed it explicitly
-        GifFileType *pTempGif = malloc(sizeof(GifFileType));
+        GifFileType *pTempGif = (GifFileType*)malloc(sizeof(GifFileType));
         int err;
         memcpy(pTempGif, gif, sizeof(GifFileType));
         err = EGifSpew(pTempGif);
@@ -993,7 +1002,7 @@ GifFileType *EGifOpenFileHandle(const int FileHandle, int *pError)
         return NULL;
     }
     pPrivate->iPixelCount = -1;
-    pPrivate->pSymbols = malloc(3 * 4096 * sizeof(uint32_t));
+    pPrivate->pSymbols = (uint32_t*)malloc(3 * 4096 * sizeof(uint32_t));
     if (pPrivate->pSymbols == NULL) {
         free(gif);
         free(pPrivate);
@@ -1145,7 +1154,7 @@ BIGUINT ulBits;
 int iLen, iColors;
 int iErr = GIF_OK;
 int iOffset;
-GIFPRIVATE *pPrivate = gif->Private;
+GIFPRIVATE *pPrivate = (GIFPRIVATE*)gif->Private;
 uint32_t *pSymbols;
 
     p = pLZW;
@@ -1252,7 +1261,7 @@ void GifDeInterlace(SavedImage *pPage)
     int iGifPass = 0;
     int i, y;
     uint8_t *d, *s;
-    uint8_t *pTemp = malloc(pPage->ImageDesc.Width * pPage->ImageDesc.Height);
+    uint8_t *pTemp = (uint8_t*)malloc(pPage->ImageDesc.Width * pPage->ImageDesc.Height);
     
     y = 0;
     for (i = 0; i < pPage->ImageDesc.Height; i++)
@@ -1286,14 +1295,14 @@ int GIFPreprocess(GifFileType *gif)
     int i, iFrameMemCount;
     uint8_t c, *d, *cBuf, *pStart;
     SavedImage *pPage;
-    GIFPRIVATE *pPrivate = gif->Private;
+    GIFPRIVATE *pPrivate = (GIFPRIVATE*)gif->Private;
     ExtensionBlock *pExtensions;
     
 //    iMaxDelay = iTotalDelay = 0;
 //    iMinDelay = 10000;
     gif->ImageCount = 1;
     iFrameMemCount = GIF_IMAGE_INCREMENT; // how much memory we allocated
-    pPage = gif->SavedImages = malloc(sizeof(SavedImage) * GIF_IMAGE_INCREMENT); // start by allocating N image structures
+    pPage = gif->SavedImages = (SavedImage*)malloc(sizeof(SavedImage) * GIF_IMAGE_INCREMENT); // start by allocating N image structures
     cBuf = (uint8_t *) pPrivate->pFileData;
     iDataAvailable = pPrivate->iFileSize;
     iOff = 10;
@@ -1312,7 +1321,7 @@ int GIFPreprocess(GifFileType *gif)
         bExt = 1; // check for extension blocks
         pPage->ExtensionBlockCount = 0;
         // pre-allocate the max # of blocks since they're just a list of pointers/counts
-        pPage->ExtensionBlocks = calloc(1, MAX_EXTENSIONS * sizeof(ExtensionBlock));
+        pPage->ExtensionBlocks = (ExtensionBlock*)calloc(1, MAX_EXTENSIONS * sizeof(ExtensionBlock));
         pExtensions = pPage->ExtensionBlocks;
         while (bExt && iOff < iDataAvailable)
         {
@@ -1432,7 +1441,7 @@ int GIFPreprocess(GifFileType *gif)
         i = (pPage->ImageDesc.Width * pPage->ImageDesc.Height) + 8;
         i += 0xffff; // memory seems to fragment if we allocate many blocks
         i &= 0xffff0000; // of odd sizes, so round them to 64K
-        pPage->RasterBits = malloc(i);
+        pPage->RasterBits = (GifByteType*)malloc(i);
         // DEBUG - check for null
         if (DecodeLZW(gif, pPage, ucCodeStart, pLZW, iLZWSize) != GIF_OK) {
             // ERROR
@@ -1449,7 +1458,7 @@ int GIFPreprocess(GifFileType *gif)
             gif->ImageCount++;
             if (gif->ImageCount >= iFrameMemCount) { // need to allocate more memory
                 iFrameMemCount += GIF_IMAGE_INCREMENT;
-                gif->SavedImages = realloc(gif->SavedImages, iFrameMemCount * sizeof(SavedImage));
+                gif->SavedImages = (SavedImage*)realloc(gif->SavedImages, iFrameMemCount * sizeof(SavedImage));
             }
             pPage = &gif->SavedImages[gif->ImageCount-1];
             memset(pPage, 0, sizeof(SavedImage));
@@ -1480,7 +1489,8 @@ int i;
         return NULL;
     }
     
-    pPrivate = gif->Private = calloc(1, sizeof(GIFPRIVATE));
+    gif->Private = calloc(1, sizeof(GIFPRIVATE));
+	pPrivate = (GIFPRIVATE*)gif->Private;
     if (gif->Private == NULL) {
         if (pError) {
             *pError = D_GIF_ERR_NOT_ENOUGH_MEM;
@@ -1583,7 +1593,7 @@ int DGifSlurp(GifFileType * gif)
     pPrivate->iFileSize = (int)lseek(pPrivate->iHandle, 0, SEEK_END);
     lseek(pPrivate->iHandle, 0, SEEK_SET);
     if (pPrivate->iFileSize > 0) {
-        pPrivate->pSymbols = malloc(3 * 4096 * sizeof(uint32_t)); // symbol memory
+        pPrivate->pSymbols = (uint32_t*)malloc(3 * 4096 * sizeof(uint32_t)); // symbol memory
         if (pPrivate->pSymbols == NULL) {
             err = D_GIF_ERR_NOT_ENOUGH_MEM;
             goto slurp_error;

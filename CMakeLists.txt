@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.11)
 
 project("gif" VERSION 0.1.0)
 
-add_library(${PROJECT_NAME})
+add_library(${PROJECT_NAME} SHARED)
 
 target_sources(${PROJECT_NAME}
     PRIVATE
@@ -23,9 +23,12 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     VERSION ${LIB_VERSION}
     SOVERSION ${LIB_VERSION_MAJOR})
 
+set_source_files_properties(gif_lib.c PROPERTIES LANGUAGE CXX )
+
 IF(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES
         RUNTIME_OUTPUT_NAME "${PROJECT_NAME}-${LIB_VERSION_MAJOR}")
+	set(CMAKE_CXX_FLAGS "/DWIN32 /D_WINDOWS")
 ENDIF(WIN32)
 
 configure_file(giflib.pc.in giflib.pc @ONLY)
@@ -46,6 +49,7 @@ install(EXPORT "${PROJECT_NAME}Config"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/giflib
 )
 
-add_executable(test)
-target_sources(test PRIVATE test.c)
-target_link_libraries(test PRIVATE ${PROJECT_NAME})
+# Can't do this with a shared lib
+# add_executable(test)
+# target_sources(test PRIVATE test.c)
+# target_link_libraries(test PRIVATE ${PROJECT_NAME})

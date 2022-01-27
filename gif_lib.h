@@ -18,6 +18,12 @@
 #ifndef _GIF_LIB_H_
 #define _GIF_LIB_H_ 
 
+#ifdef _WINDOWS
+	#define EXPORT_API __declspec(dllexport)
+#else
+	#define EXPORT_API
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -164,47 +170,47 @@ typedef struct GraphicsControlBlock {
 extern const char *GifErrorString(int ErrorCode);
 
 // Decoder
-GifFileType *DGifOpenFileName(const char *GifFileName, int *Error);
-GifFileType *DGifOpenFileHandle(int GifFileHandle, int *Error);
-int DGifSlurp(GifFileType * GifFile);
-GifFileType *DGifOpen(void *userPtr, InputFunc readFunc, int *Error);    /* new one (TVT) */
-    int DGifCloseFile(GifFileType * GifFile, int *ErrorCode);
+EXPORT_API GifFileType *DGifOpenFileName(const char *GifFileName, int *Error);
+EXPORT_API GifFileType *DGifOpenFileHandle(int GifFileHandle, int *Error);
+EXPORT_API int DGifSlurp(GifFileType * GifFile);
+EXPORT_API GifFileType *DGifOpen(void *userPtr, InputFunc readFunc, int *Error);    /* new one (TVT) */
+EXPORT_API int DGifCloseFile(GifFileType * GifFile, int *ErrorCode);
 
 // Encoder
-GifFileType *EGifOpenFileName(const char *GifFileName, const bool GifTestExistence, int *Error);
-GifFileType *EGifOpenFileHandle(const int GifFileHandle, int *Error);
-GifFileType *EGifOpen(void *userPtr, OutputFunc writeFunc, int *Error);
-int EGifSpew(GifFileType * GifFile);
-const char *EGifGetGifVersion(GifFileType *GifFile); /* new in 5.x */
-int EGifCloseFile(GifFileType *GifFile, int *ErrorCode);
-void EGifSetGifVersion(GifFileType *GifFile, const bool gif89);
-int EGifPutExtensionBlock(GifFileType *GifFile, const int ExtLen, const void *Extension);
-int EGifPutExtensionTrailer(GifFileType *GifFile);
-int EGifPutExtensionLeader(GifFileType *GifFile, const int ExtCode);
-int EGifPutExtension(GifFileType *GifFile, const int ExtCode, const int ExtLen, const void *Extension);
-int EGifPutScreenDesc(GifFileType *GifFile, const int Width, const int Height, const int ColorRes, const int BackGround, const ColorMapObject *ColorMap);
-int EGifPutImageDesc(GifFileType *GifFile, const int Left, const int Top, const int Width, const int Height, const bool Interlace, const ColorMapObject *ColorMap);
-int EGifPutLine(GifFileType *GifFile, GifPixelType *GifLine,
+EXPORT_API GifFileType *EGifOpenFileName(const char *GifFileName, const bool GifTestExistence, int *Error);
+EXPORT_API GifFileType *EGifOpenFileHandle(const int GifFileHandle, int *Error);
+EXPORT_API GifFileType *EGifOpen(void *userPtr, OutputFunc writeFunc, int *Error);
+EXPORT_API int EGifSpew(GifFileType * GifFile);
+EXPORT_API const char *EGifGetGifVersion(GifFileType *GifFile); /* new in 5.x */
+EXPORT_API int EGifCloseFile(GifFileType *GifFile, int *ErrorCode);
+EXPORT_API void EGifSetGifVersion(GifFileType *GifFile, const bool gif89);
+EXPORT_API int EGifPutExtensionBlock(GifFileType *GifFile, const int ExtLen, const void *Extension);
+EXPORT_API int EGifPutExtensionTrailer(GifFileType *GifFile);
+EXPORT_API int EGifPutExtensionLeader(GifFileType *GifFile, const int ExtCode);
+EXPORT_API int EGifPutExtension(GifFileType *GifFile, const int ExtCode, const int ExtLen, const void *Extension);
+EXPORT_API int EGifPutScreenDesc(GifFileType *GifFile, const int Width, const int Height, const int ColorRes, const int BackGround, const ColorMapObject *ColorMap);
+EXPORT_API int EGifPutImageDesc(GifFileType *GifFile, const int Left, const int Top, const int Width, const int Height, const bool Interlace, const ColorMapObject *ColorMap);
+EXPORT_API int EGifPutLine(GifFileType *GifFile, GifPixelType *GifLine,
                 int GifLineLen);
 // Common
-ColorMapObject *GifMakeMapObject(int ColorCount, const GifColorType *ColorMap);
-ColorMapObject *GifUnionColorMap(const ColorMapObject *ColorIn1,
+EXPORT_API ColorMapObject *GifMakeMapObject(int ColorCount, const GifColorType *ColorMap);
+EXPORT_API ColorMapObject *GifUnionColorMap(const ColorMapObject *ColorIn1,
                                      const ColorMapObject *ColorIn2,
                                      GifPixelType ColorTransIn2[]);
-void GifFreeMapObject(ColorMapObject *Object);
-SavedImage *GifMakeSavedImage(GifFileType *GifFile,
+EXPORT_API void GifFreeMapObject(ColorMapObject *Object);
+EXPORT_API SavedImage *GifMakeSavedImage(GifFileType *GifFile,
                                   const SavedImage *CopyFrom);
-void GifFreeSavedImages(GifFileType *GifFile);
-int DGifExtensionToGCB(const size_t GifExtensionLength,
+EXPORT_API void GifFreeSavedImages(GifFileType *GifFile);
+EXPORT_API int DGifExtensionToGCB(const size_t GifExtensionLength,
                const GifByteType *GifExtension,
                GraphicsControlBlock *GCB);
-size_t EGifGCBToExtension(const GraphicsControlBlock *GCB,
+EXPORT_API size_t EGifGCBToExtension(const GraphicsControlBlock *GCB,
                GifByteType *GifExtension);
 
-int DGifSavedExtensionToGCB(GifFileType *GifFile,
+EXPORT_API int DGifSavedExtensionToGCB(GifFileType *GifFile,
                 int ImageIndex,
                 GraphicsControlBlock *GCB);
-int EGifGCBToSavedExtension(const GraphicsControlBlock *GCB,
+EXPORT_API int EGifGCBToSavedExtension(const GraphicsControlBlock *GCB,
                 GifFileType *GifFile,
                 int ImageIndex);
 
